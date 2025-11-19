@@ -7,18 +7,36 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MutasiBarang extends Model
 {
-     use HasFactory;
+    use HasFactory;
 
-    // Menentukan nama tabel yang digunakan
     protected $table = 'mutasi_barang';
 
-    // Menentukan kolom yang bisa diisi massal
-    protected $fillable = ['barang_id', 'tanggal_mutasi', 'jumlah', 'keterangan'];
+    protected $fillable = [
+        'barang_id',
+        'lab_asal_id',
+        'lab_tujuan_id',
+        'jumlah',
+        'tanggal_mutasi',
+    ];
 
-    // Relasi Many-to-One: Setiap mutasi barang berkaitan dengan satu barang tertentu
+    // Relasi: satu mutasi milik satu barang
     public function barang()
     {
-        // relasi ke model Barang dengan foreign key 'barang_id'
         return $this->belongsTo(Barang::class);
     }
+
+    // Relasi ke lab asal
+   public function labAsal()
+{
+    return $this->belongsTo(Lab::class, 'lab_asal');
+}
+
+public function labTujuan()
+{
+    return $this->belongsTo(Lab::class, 'lab_tujuan');
+}
+
+
+
+    
 }

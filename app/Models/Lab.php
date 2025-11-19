@@ -3,22 +3,35 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory; // Memungkinkan model membuat data dummy lewat factory untuk testing atau seeding.
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Lab extends Model
 {
     use HasFactory;
 
-    // Menentukan nama tabel yang digunakan model ini di database
     protected $table = 'lab';
 
-    // Menentukan kolom mana yang dapat diisi secara mass assignment (fillable)
-    protected $fillable = ['nama_lab'];
+    protected $fillable = [
+        'nama_lab',
+        'penanggung_jawab',
+        'foto_penanggung_jawab'
+    ];
 
-    // Relasi One-to-Many: Satu lab dapat memiliki banyak barang
+    // Satu lab punya banyak barang
     public function barang()
     {
-        // relasi ke model Barang berdasarkan foreign key 'lab_id' pada tabel 'barang'
-        return $this->hasMany(Barang::class);
+        return $this->hasMany(\App\Models\Barang::class, 'lab_id');
+    }
+
+    // Mutasi — lab sebagai ASAL
+    public function mutasiAsal()
+    {
+        return $this->hasMany(\App\Models\MutasiBarang::class, 'lab_asal_id', 'id');
+    }
+
+    // Mutasi — lab sebagai TUJUAN
+    public function mutasiTujuan()
+    {
+        return $this->hasMany(\App\Models\MutasiBarang::class, 'lab_tujuan_id', 'id');
     }
 }

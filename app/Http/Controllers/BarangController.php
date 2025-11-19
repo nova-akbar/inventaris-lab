@@ -74,7 +74,7 @@ class BarangController extends Controller
         $barang = Barang::findOrFail($id);
 
         $lab = Lab::all();
-        return view('edit', compact('barang', 'lab'));
+        return view('barang_edit', compact('barang', 'lab'));
     }
 
     /**

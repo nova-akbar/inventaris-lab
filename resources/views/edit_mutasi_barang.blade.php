@@ -48,9 +48,7 @@
         transition: .2s;
     }
 
-    .btn-save:hover {
-        background: #e66d00;
-    }
+    .btn-save:hover { background: #e66d00; }
 
     .btn-back {
         background: #dcdcdc;
@@ -66,39 +64,43 @@
 <div class="container mt-4">
 
     <div class="form-box">
-        <h2 class="title">Tambah Mutasi Barang</h2>
+        <h2 class="title">Edit Mutasi Barang</h2>
 
-        <form action="{{ route('mutasi_barang.store') }}" method="POST">
+        <form action="{{ route('mutasi_barang.update', $mutasi_barang->id) }}" method="POST">
             @csrf
+            @method('PUT')
 
             <label>Barang</label>
             <select name="barang_id" required>
-                <option value="">-- Pilih Barang --</option>
                 @foreach($barang as $b)
-                    <option value="{{ $b->id }}">{{ $b->nama_barang }}</option>
+                    <option value="{{ $b->id }}" {{ $mutasi_barang->barang_id == $b->id ? 'selected':'' }}>
+                        {{ $b->nama_barang }}
+                    </option>
                 @endforeach
             </select>
 
             <label>Lab Asal</label>
             <select name="lab_asal_id" required>
-                <option value="">-- Pilih Lab Asal --</option>
                 @foreach($lab as $l)
-                    <option value="{{ $l->id }}">{{ $l->nama_lab }}</option>
+                    <option value="{{ $l->id }}" {{ $mutasi_barang->lab_asal_id == $l->id ? 'selected':'' }}>
+                        {{ $l->nama_lab }}
+                    </option>
                 @endforeach
             </select>
 
             <label>Lab Tujuan</label>
             <select name="lab_tujuan_id" required>
-                <option value="">-- Pilih Lab Tujuan --</option>
                 @foreach($lab as $l)
-                    <option value="{{ $l->id }}">{{ $l->nama_lab }}</option>
+                    <option value="{{ $l->id }}" {{ $mutasi_barang->lab_tujuan_id == $l->id ? 'selected':'' }}>
+                        {{ $l->nama_lab }}
+                    </option>
                 @endforeach
             </select>
 
-            <label>Jumlah Mutasi</label>
-            <input type="number" name="jumlah" min="1" required>
+            <label>Jumlah</label>
+            <input type="number" name="jumlah" value="{{ $mutasi_barang->jumlah }}" required>
 
-            <button class="btn-save">Simpan</button>
+            <button class="btn-save">Simpan Perubahan</button>
             <a href="{{ route('mutasi_barang.index') }}" class="btn-back">Batal</a>
 
         </form>

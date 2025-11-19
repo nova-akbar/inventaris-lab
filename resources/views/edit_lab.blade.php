@@ -4,7 +4,6 @@
     <div class="container mt-4">
         <h2>Edit Data Laboratorium</h2>
 
-        {{-- Pesan error validasi --}}
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul>
@@ -15,7 +14,7 @@
             </div>
         @endif
 
-        <form action="{{ route('lab.update', $lab->id) }}" method="POST">
+<form action="{{ route('lab.update', $lab->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -31,11 +30,23 @@
             </div>
 
             <div class="mb-3">
-                <label for="keterangan" class="form-label">Keterangan</label>
-                <textarea 
+                <label for="penanggung_jawab" class="form-label">Penanggung Jawab</label>
+                <input 
+                    type="text" 
                     class="form-control" 
-                    id="keterangan" 
-                    name="keterangan">{{ $lab->keterangan }}</textarea>
+                    id="penanggung_jawab" 
+                    name="penanggung_jawab" 
+                    value="{{ old('penanggung_jawab', $lab->penanggung_jawab) }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="foto_penanggung_jawab" class="form-label">Foto Penanggung Jawab</label>
+                <input type="file" class="form-control" name="foto_penanggung_jawab">
+
+            @if($lab->foto_penanggung_jawab)
+    <img src="{{ asset('storage/' . $lab->foto_penanggung_jawab) }}" alt="Foto Penanggung Jawab" width="100">
+@endif
+
             </div>
 
             <button type="submit" class="btn btn-primary">Simpan Perubahan</button>

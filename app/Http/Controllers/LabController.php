@@ -2,114 +2,115 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Lab;          // Import model Lab agar bisa digunakan di controller ini
-use Illuminate\Http\Request; // Digunakan untuk menangani data yang dikirim dari form (input pengguna)
+use App\Models\Lab;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class LabController extends Controller
 {
     /**
-     * Menampilkan seluruh data laboratorium.
-     * Method ini akan dipanggil saat pengguna membuka halaman daftar lab (route: GET /lab).
-    */
+     * Menampilkan daftar semua lab.
+     */
     public function index()
     {
-        // Mengambil semua data dari tabel 'lab' menggunakan model Lab
         $lab = Lab::all();
-
-        // Mengirim data ke view 'index' agar bisa ditampilkan di halaman
-        return view('index', compact('lab'));
+        return view('lab.index', compact('lab'));
     }
 
     /**
-     * Menampilkan form untuk menambahkan laboratorium baru.
-     * Method ini akan dipanggil saat pengguna membuka halaman tambah lab (route: GET /lab/create).
-    */
+     * Menampilkan form tambah lab.
+     */
     public function create()
     {
-        // Hanya menampilkan form tambah LAB
-        return view('create');
+        return view('lab.create');
     }
 
     /**
-     * Menyimpan data laboratorium baru ke dalam database.
-     * Method ini akan dipanggil saat pengguna menekan tombol "Simpan" pada form tambah data (route: POST /lab).
-    */
+     * Simpan lab baru.
+     */
     public function store(Request $request)
     {
-        // Validasi agar data yang dikirim sesuai aturan
         $request->validate([
-            'nama_lab' => 'required|string|max:100', // nama_lab wajib diisi, berupa teks, maksimal 100 karakter
-            'keterangan' => 'nullable|string',       // keterangan boleh kosong, tapi jika diisi harus berupa teks
+            'nama_lab' => 'required|string|max:100',
+            'penanggung_jawab' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('lab')->where(function ($query) use ($request) {
+                    return $query->where('nama_lab', $request->nama_lab);
+                }),
+            ],
+            'foto_penanggung_jawab' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Menyimpan data ke tabel 'lab' berdasarkan data yang dikirim dari form
-        Lab::create($request->all());
+        $data = $request->all();
 
-        // Setelah data berhasil disimpan, arahkan kembali ke halaman daftar lab dengan pesan sukses
+        if ($request->hasFile('foto_penanggung_jawab')) {
+            $data['foto_penanggung_jawab'] = $request->file('foto_penanggung_jawab')->store('lab-foto', 'public');
+        }
+
+        Lab::create($data);
+
         return redirect()->route('lab.index')->with('success', 'Data lab berhasil ditambahkan.');
     }
 
     /**
-     * Menampilkan detail dari satu laboratorium.
-     * Method ini opsional, digunakan jika ingin melihat detail satu data lab tertentu (route: GET /lab/{id}).
+     * Halaman detail lab — penanggung jawab + daftar barang.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        // Mencari data lab berdasarkan ID. Jika tidak ditemukan, akan memunculkan error 404.
-        $lab = Lab::findOrFail($id);
-
-        // Mengirim data tersebut ke view 'show.blade.php' untuk ditampilkan.
-        return view('show', compact('lab'));
+        $lab = Lab::with('barang')->findOrFail($id);
+        return view('lab.show', compact('lab'));
     }
 
     /**
-     * Menampilkan form edit untuk mengubah data laboratorium yang sudah ada.
-     * Method ini dipanggil saat pengguna menekan tombol "Edit" pada tabel (route: GET /lab/{id}/edit).
+     * Form edit lab.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        // Mencari data lab berdasarkan ID. Jika tidak ditemukan, akan memunculkan error 404.
         $lab = Lab::findOrFail($id);
-
-        // Mengirim data lab yang ditemukan ke view 'edit.blade.php' untuk diedit.
-        return view('edit', compact('lab'));
+        return view('lab.edit', compact('lab'));
     }
 
     /**
-     * Menyimpan perubahan data laboratorium ke dalam database.
-     * Method ini dipanggil saat pengguna menekan tombol "Simpan Perubahan" (route: PUT/PATCH /lab/{id}).
+     * Update lab.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        // Validasi data baru yang dikirim dari form edit
         $request->validate([
             'nama_lab' => 'required|string|max:100',
-            'keterangan' => 'nullable|string',
+            'penanggung_jawab' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('lab')->ignore($id)->where(function ($query) use ($request) {
+                    return $query->where('nama_lab', $request->nama_lab);
+                }),
+            ],
+            'foto_penanggung_jawab' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Mengupdate data lab berdasarkan input terbaru
         $lab = Lab::findOrFail($id);
 
-        // Perbarui seluruh kolom sesuai data baru dari pengguna.
-        $lab->update($request->all());
+        $data = $request->only(['nama_lab', 'penanggung_jawab']);
 
-        // Setelah diperbarui, kembali ke halaman daftar lab dengan pesan sukses
+        if ($request->hasFile('foto_penanggung_jawab')) {
+            $data['foto_penanggung_jawab'] = $request->file('foto_penanggung_jawab')->store('lab-foto', 'public');
+        }
+
+        $lab->update($data);
+
         return redirect()->route('lab.index')->with('success', 'Data lab berhasil diperbarui.');
     }
 
     /**
-     * Menghapus data laboratorium dari database.
-     * Method ini dipanggil saat pengguna menekan tombol "Hapus" (route: DELETE /lab/{id}).
+     * Hapus lab.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        // Menghapus data lab berdasarkan ID, jika tidak ada ada maka error
         $lab = Lab::findOrFail($id);
-
-        // Hapus data lab tersebut dari database.
         $lab->delete();
 
-        // Setelah berhasil dihapus, arahkan ke halaman daftar lab dengan pesan sukses
         return redirect()->route('lab.index')->with('success', 'Data lab berhasil dihapus.');
     }
 }
